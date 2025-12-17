@@ -6,6 +6,7 @@ const mysql = require("mysql2");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const { Sequelize, DataTypes, Op } = require("sequelize");
+const bcrypt = require('bcryptjs');
 
 
 // Middleware
@@ -371,6 +372,49 @@ app.get('/register', (req, res) => {
 });
 
 // end register page
+
+// register logic
+app.post('/register', async (req, res) => {
+    try {
+        const { name, email, password, phone, role } = req.body;
+        
+        const existingUser = await User.findOne({ where: { email } });
+        if (existingUser) {
+            return res.render('auth/register', {
+                user: req.session.user,
+                errors: ['Email sudah terdaftar'],
+                formData: req.body
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = await User.create({
+            name,
+            email,
+            password: hashedPassword,
+            phone,
+            role: role || 'user'
+        });
+
+        req.session.user = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+        };
+
+        res.redirect('/');
+    } catch (error) {
+        console.error(error);
+        res.render('auth/register', {
+            user: req.session.user,
+            errors: ['Terjadi kesalahan saat registrasi'],
+            formData: req.body
+        });
+    }
+});
+// end register logic
 
 // login page
 app.get('/login', (req, res) => {
