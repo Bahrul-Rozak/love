@@ -416,11 +416,61 @@ app.post('/register', async (req, res) => {
 });
 // end register logic
 
+
+// logout logic
+app.post('/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/');
+});
+// end logout logic
+
 // login page
 app.get('/login', (req, res) => {
     res.render('auth/login', { user: req.session.user, errors: [] });
 });
 // end login page
+
+// login logic
+app.post('/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+            return res.render('auth/login', {
+                user: req.session.user,
+                errors: ['Email atau password salah'],
+                formData: req.body
+            });
+        }
+
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        if (!isValidPassword) {
+            return res.render('auth/login', {
+                user: req.session.user,
+                errors: ['Email atau password salah'],
+                formData: req.body
+            });
+        }
+
+        req.session.user = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+        };
+
+        res.redirect('/');
+    } catch (error) {
+        console.error(error);
+        res.render('auth/login', {
+            user: req.session.user,
+            errors: ['Terjadi kesalahan saat login'],
+            formData: req.body
+        });
+    }
+});
+// end login logic
 
 // end routes
 
