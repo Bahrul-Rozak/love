@@ -208,6 +208,23 @@ EventAttachment.belongsTo(Event, {
 });
 // End Relasi
 
+// middleware
+const requireAuth = (req, res, next) => {
+    if (!req.session.user) {
+        return res.redirect('/login');
+    }
+    next();
+};
+
+const requireCreator = (req, res, next) => {
+    if (!req.session.user || req.session.user.role !== 'creator') {
+        return res.redirect('/');
+    }
+    next();
+};
+
+// end middleware
+
 // semua routesnya disini ya yang...
 // Home Controller
 app.get('/', async (req, res) => {
