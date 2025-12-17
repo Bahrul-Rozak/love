@@ -472,6 +472,27 @@ app.post('/login', async (req, res) => {
 });
 // end login logic
 
+// checkout page
+app.get('/events/:id/checkout', requireAuth, async (req, res) => {
+    try {
+        const event = await Event.findByPk(req.params.id);
+        
+        if (!event) {
+            return res.status(404).send('Event tidak ditemukan');
+        }
+
+        res.render('orders/checkout', {
+            user: req.session.user,
+            event,
+            errors: []
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server Error');
+    }
+});
+// end checkout page
+
 // end routes
 
 // Helper function untuk gambar kota
