@@ -347,6 +347,20 @@ app.get('/terms', (req, res) => {
 });
 // end static page terms
 
+// register page 
+
+app.get('/register', (req, res) => {
+    res.render('auth/register', { user: req.session.user, errors: [] });
+});
+
+// end register page
+
+// login page
+app.get('/login', (req, res) => {
+    res.render('auth/login', { user: req.session.user, errors: [] });
+});
+// end login page
+
 // end routes
 
 // Helper function untuk gambar kota
