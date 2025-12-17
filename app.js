@@ -309,6 +309,21 @@ app.get('/events', async (req, res) => {
 
 // end routes
 
+// Helper function untuk gambar kota
+app.locals.getCityImage = (city) => {
+    const cityImages = {
+        'Jakarta': 'https://images.unsplash.com/photo-1590930754517-64d5fffa06ac?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        'Bandung': 'https://images.unsplash.com/photo-1564901236182-daaec707fbf3?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        'Surabaya': 'https://images.unsplash.com/photo-1588666309990-5d90b421f449?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+        'Yogyakarta': 'https://images.unsplash.com/photo-1593584785033-9c7604d0863d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+        'Bali': 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+        'Medan': 'https://images.unsplash.com/photo-1588666309990-5d90b421f449?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+        'Semarang': 'https://images.unsplash.com/photo-1558002038-1055907df827?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+        'Malang': 'https://images.unsplash.com/photo-1588666309999-ef3b59d9362d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
+    };
+    return cityImages[city] || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
+};
+
 // sync semua tablenya disini ya
 async function syncDatabase() {
     try {
