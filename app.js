@@ -329,6 +329,15 @@ app.get('/events/:id', async (req, res) => {
 });
 // end halaman event detail
 
+// static page privacy
+app.get('/privacy', (req, res) => {
+    res.render('privacy', {
+        user: req.session.user,
+        title: 'Privacy Policy - EventHub'
+    });
+});
+// end static page privacy
+
 // end routes
 
 // Helper function untuk gambar kota
