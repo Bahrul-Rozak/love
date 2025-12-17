@@ -256,6 +256,57 @@ app.get('/', async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+
+// home end
+
+// Event Controllers
+app.get('/events', async (req, res) => {
+    try {
+        const { category, search, city } = req.query;
+        const where = { is_published: true };
+        
+        if (category) where.category_id = category;
+        if (search) where.title = { [Op.like]: `%${search}%` };
+        if (city) where.city = city;
+
+        const events = await Event.findAll({
+            where,
+            include: [Category, User],
+            order: [['event_date', 'ASC']]
+        });
+
+        const categories = await Category.findAll();
+
+        let cities = [];
+        try {
+            const citiesData = await Event.findAll({
+                attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('city')), 'city']],
+                where: { is_published: true },
+                order: [['city', 'ASC']]
+            });
+            cities = citiesData.map(c => c.city).filter(city => city);
+        } catch (error) {
+            console.error('Error fetching cities:', error);
+            cities = ['Jakarta', 'Bandung', 'Surabaya', 'Yogyakarta', 'Bali'];
+        }
+
+        res.render('events/index', {
+            user: req.session.user,
+            events,
+            categories,
+            cities: cities,
+            selectedCategory: category,
+            searchQuery: search,
+            selectedCity: city
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server Error');
+    }
+});
+
+// end events
+
 // end routes
 
 // sync semua tablenya disini ya
