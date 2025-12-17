@@ -307,6 +307,28 @@ app.get('/events', async (req, res) => {
 
 // end events
 
+// halaman event detail
+app.get('/events/:id', async (req, res) => {
+    try {
+        const event = await Event.findByPk(req.params.id, {
+            include: [Category, User, EventAttachment]
+        });
+
+        if (!event) {
+            return res.status(404).send('Event tidak ditemukan');
+        }
+
+        res.render('events/detail', {
+            user: req.session.user,
+            event
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server Error');
+    }
+});
+// end halaman event detail
+
 // end routes
 
 // Helper function untuk gambar kota
