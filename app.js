@@ -1,10 +1,26 @@
-const express = require("express");
-const app = express();
-const mysql = require("mysql2");
 require("dotenv").config();
-const { Sequelize, DataTypes } = require("sequelize");
-const port = 3000;
+const express = require("express");
+const session = require('express-session');
+const path = require('path')
+const mysql = require("mysql2");
+const app = express();
+const PORT = process.env.PORT || 3000;
+const { Sequelize, DataTypes, Op } = require("sequelize");
 
+
+// Middleware
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static('public'));
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    resave: false,
+    saveUninitialized: false
+}));
+
+// Set view engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 // Database connection
 const sequelize = new Sequelize(
@@ -17,16 +33,6 @@ const sequelize = new Sequelize(
     logging: false,
   }
 );
-
-sequelize
-  .authenticate()
-  .then(() => {
-    console.log("Koneksi ke database BERHASIL!");
-  })
-  .catch((err) => {
-    console.log("Gagal terhubung ke database:", err.message);
-    // process.exit(1);
-  });
 
 //   Models
 // ==================== MODELS ====================
@@ -201,3 +207,85 @@ EventAttachment.belongsTo(Event, {
     onUpdate: 'CASCADE'
 });
 // End Relasi
+
+// semua routesnya disini ya yang...
+// Home Controller
+app.get('/', async (req, res) => {
+    try {
+        const categories = await Category.findAll();
+        
+        let cities = [];
+        try {
+            const citiesData = await Event.findAll({
+                attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('city')), 'city']],
+                where: { is_published: true },
+                order: [['city', 'ASC']]
+            });
+            cities = citiesData.map(c => c.city).filter(city => city);
+        } catch (error) {
+            console.error('Error fetching cities:', error);
+            cities = ['Jakarta', 'Bandung', 'Surabaya', 'Yogyakarta', 'Bali'];
+        }
+
+        const latestEvents = await Event.findAll({
+            where: { is_published: true },
+            include: [Category, User],
+            order: [['created_at', 'DESC']],
+            limit: 6
+        });
+        
+        const upcomingEvents = await Event.findAll({
+            where: { 
+                is_published: true,
+                event_date: { [Op.gte]: new Date() }
+            },
+            include: [Category, User],
+            order: [['event_date', 'ASC']],
+            limit: 6
+        });
+
+        res.render('home', {
+            user: req.session.user,
+            categories,
+            cities: cities,
+            latestEvents,
+            upcomingEvents
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server Error');
+    }
+});
+// end routes
+
+// sync semua tablenya disini ya
+async function syncDatabase() {
+    try {
+        await sequelize.sync({ alter: true });
+        console.log('All tables synced successfully');
+        
+    } catch (error) {
+        console.error('Database sync error:', error);
+    }
+}
+// end sync
+
+// main server
+
+async function startServer() {
+    try {
+        await sequelize.authenticate();
+        console.log('Database connected successfully');
+        
+        // Sync database
+        await syncDatabase();
+        
+        app.listen(PORT, () => {
+            console.log(`Server running on http://localhost:${PORT}`);
+        });
+    } catch (error) {
+        console.error('Unable to start server:', error);
+    }
+}
+
+startServer();
