@@ -338,6 +338,15 @@ app.get('/privacy', (req, res) => {
 });
 // end static page privacy
 
+// static page terms
+app.get('/terms', (req, res) => {
+    res.render('terms', {
+        user: req.session.user,
+        title: 'Terms of Service - EventHub'
+    });
+});
+// end static page terms
+
 // end routes
 
 // Helper function untuk gambar kota
