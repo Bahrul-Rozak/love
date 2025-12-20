@@ -7,6 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const { Sequelize, DataTypes, Op } = require("sequelize");
 const bcrypt = require('bcryptjs');
+const multer = require('multer');
 
 
 // Middleware
@@ -226,6 +227,18 @@ const requireCreator = (req, res, next) => {
 
 // end middleware
 
+// upload dengan multer
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '-' + file.originalname);
+    }
+});
+const upload = multer({ storage });
+// end upload dengan multer
+
 // semua routesnya disini ya yang...
 // Home Controller
 app.get('/', async (req, res) => {
@@ -338,6 +351,52 @@ app.get('/events/create', requireAuth, requireCreator, async (req, res) => {
     }
 });
 // end creator create event page
+
+// create event logic for creator
+app.post('/events/create', requireAuth, requireCreator, upload.single('image'), async (req, res) => {
+    try {
+        const {
+            title,
+            description,
+            venue,
+            city,
+            event_date,
+            event_end_date,
+            category_id,
+            max_attendees,
+            price,
+            available_tickets
+        } = req.body;
+
+        const event = await Event.create({
+            title,
+            description,
+            venue,
+            city,
+            event_date,
+            event_end_date,
+            category_id,
+            max_attendees,
+            price,
+            available_tickets,
+            creator_id: req.session.user.id,
+            image_path: req.file ? `/uploads/${req.file.filename}` : null,
+            is_published: true
+        });
+
+        res.redirect(`/events/${event.id}`);
+    } catch (error) {
+        console.error(error);
+        const categories = await Category.findAll();
+        res.render('events/create', {
+            user: req.session.user,
+            categories,
+            errors: ['Terjadi kesalahan saat membuat event'],
+            formData: req.body
+        });
+    }
+});
+// end create event logic for creator
 
 // end events
 
