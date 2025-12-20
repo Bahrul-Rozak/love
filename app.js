@@ -516,6 +516,39 @@ app.get('/profile', requireAuth, async (req, res) => {
 });
 // End Profile Page 
 
+// Profile Page Logic
+app.post('/profile', requireAuth, async (req, res) => {
+    try {
+        const { name, phone } = req.body;
+        
+        await User.update(
+            { name, phone },
+            { where: { id: req.session.user.id } }
+        );
+
+        // Update session
+        req.session.user.name = name;
+        
+        res.redirect('/profile');
+    } catch (error) {
+        console.error(error);
+        const user = await User.findByPk(req.session.user.id);
+        const userOrders = await Order.count({ where: { user_id: req.session.user.id } });
+        const userEvents = await Event.count({ where: { creator_id: req.session.user.id } });
+        
+        res.render('users/profile', {
+            user: req.session.user,
+            userData: user,
+            stats: {
+                orders: userOrders,
+                events: userEvents
+            },
+            errors: ['Terjadi kesalahan saat update profile']
+        });
+    }
+});
+// End Profile Page Logic
+
 // end routes
 
 // Helper function untuk gambar kota
