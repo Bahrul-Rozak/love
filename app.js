@@ -644,6 +644,26 @@ app.get('/my-orders', requireAuth, async (req, res) => {
 });
 // End My Orders Page
 
+// My Event Page
+app.get('/my-events', requireAuth, requireCreator, async (req, res) => {
+    try {
+        const events = await Event.findAll({
+            where: { creator_id: req.session.user.id },
+            include: [Category],
+            order: [['created_at', 'DESC']]
+        });
+
+        res.render('events/my-events', {
+            user: req.session.user,
+            events
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server Error');
+    }
+});
+// End My Events page
+
 // creator all logic
 
 
