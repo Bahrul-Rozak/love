@@ -323,6 +323,22 @@ app.get('/events', async (req, res) => {
     }
 });
 
+// creator create event page
+app.get('/events/create', requireAuth, requireCreator, async (req, res) => {
+    try {
+        const categories = await Category.findAll();
+        res.render('events/create', {
+            user: req.session.user,
+            categories,
+            errors: []
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server Error');
+    }
+});
+// end creator create event page
+
 // end events
 
 // halaman event detail
@@ -568,6 +584,12 @@ app.get('/my-orders', requireAuth, async (req, res) => {
     }
 });
 // End My Orders Page
+
+// creator all logic
+
+
+
+// End creator all logic
 
 
 // end routes
