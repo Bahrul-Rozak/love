@@ -691,6 +691,51 @@ app.get('/events/:id/edit', requireAuth, requireCreator, async (req, res) => {
 });
 // End Event Edit Page
 
+// Logic event edit page
+app.post('/events/:id/edit', requireAuth, requireCreator, upload.single('image'), async (req, res) => {
+    try {
+        const event = await Event.findByPk(req.params.id);
+        
+        if (!event || event.creator_id !== req.session.user.id) {
+            return res.status(403).send('Tidak diizinkan');
+        }
+
+        const updateData = {
+            title: req.body.title,
+            description: req.body.description,
+            venue: req.body.venue,
+            city: req.body.city,
+            event_date: req.body.event_date,
+            event_end_date: req.body.event_end_date,
+            category_id: req.body.category_id,
+            max_attendees: req.body.max_attendees,
+            price: req.body.price,
+            available_tickets: req.body.available_tickets
+        };
+
+        if (req.file) {
+            updateData.image_path = `/uploads/${req.file.filename}`;
+        }
+
+        await event.update(updateData);
+
+        res.redirect(`/events/${event.id}`);
+    } catch (error) {
+        console.error(error);
+        const categories = await Category.findAll();
+        const event = await Event.findByPk(req.params.id, { include: [Category] });
+        
+        res.render('events/edit', {
+            user: req.session.user,
+            event,
+            categories,
+            errors: ['Terjadi kesalahan saat update event'],
+            formData: req.body
+        });
+    }
+});
+// End Logic event edit page
+
 // creator all logic
 
 
