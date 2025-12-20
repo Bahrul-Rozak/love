@@ -549,6 +549,27 @@ app.post('/profile', requireAuth, async (req, res) => {
 });
 // End Profile Page Logic
 
+// My Orders Page
+app.get('/my-orders', requireAuth, async (req, res) => {
+    try {
+        const orders = await Order.findAll({
+            where: { user_id: req.session.user.id },
+            include: [Event],
+            order: [['created_at', 'DESC']]
+        });
+
+        res.render('orders/my-orders', {
+            user: req.session.user,
+            orders
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server Error');
+    }
+});
+// End My Orders Page
+
+
 // end routes
 
 // Helper function untuk gambar kota
