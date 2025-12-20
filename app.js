@@ -664,6 +664,33 @@ app.get('/my-events', requireAuth, requireCreator, async (req, res) => {
 });
 // End My Events page
 
+// Event Edit Page
+app.get('/events/:id/edit', requireAuth, requireCreator, async (req, res) => {
+    try {
+        const event = await Event.findByPk(req.params.id, {
+            include: [Category]
+        });
+
+        if (!event || event.creator_id !== req.session.user.id) {
+            return res.status(403).send('Tidak diizinkan');
+        }
+
+        const categories = await Category.findAll();
+
+        res.render('events/edit', {
+            user: req.session.user,
+            event,
+            categories,
+            errors: [],
+            formData: {}
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server Error');
+    }
+});
+// End Event Edit Page
+
 // creator all logic
 
 
